@@ -4,6 +4,9 @@
 #include <unistd.h>
 #include <sys/wait.h>
 
+#include <sys/stat.h>
+#include <fcntl.h>
+
 #include "init_shell.c"
 #include "launch_jobs.c"
 
@@ -61,14 +64,14 @@ char** split(const char* string, char* delimiter){
 * Execute internal command if available
 * \return 1 if an internal command was found, 0 if no internal command was found
 */
-int internalCommand(char** cmdArray){
+int internalCommand(char** cmd_array){
 
-    if(strcmp(cmdArray[0],"cd")==0){
-        if(cmdArray[1]==NULL){
-            printf("Usage: cd DESTINATION\n");
+    if(strcmp(cmd_array[0],"cd")==0){
+        if(cmd_array[1]==NULL){
+            printf("Usage: cd PATH\n");
         }
         else {
-            chdir(cmdArray[1]);
+            chdir(cmd_array[1]);
         }
         return 1;
     }
@@ -93,6 +96,21 @@ void displayPromptText(){
     printf("\033[0m"); //Resets the text to default color
 }
 
+/**
+* Remove count elements of the array starting from position
+*/
+void remove_array_elements(char** array, int position, int count){
+    
+
+    while(array[position+count]!=NULL){
+        array[position] = array[position+count];
+        position++;
+    }
+
+    array[position]=0;
+
+}
+
 int main() {
 
 	init_shell();
@@ -101,7 +119,7 @@ int main() {
 		
         char *user_input=malloc(INPUT_LINE_LENGHT);
 
-        char** cmdArray;
+        char** cmd_array;
 
         while(strlen(user_input)==0){
 
@@ -114,28 +132,61 @@ int main() {
 
             // printf("[%s]\n", user_input);
 
-            cmdArray = split(user_input, " ");
+            cmd_array = split(user_input, " ");
 
-            // for(int i=0; cmdArray[i]!=NULL; i++){
-            //     printf("[%s]\n", cmdArray[i]);
+            // for(int i=0; cmd_array[i]!=NULL; i++){
+            //     printf("[%s]\n", cmd_array[i]);
             // }
 
         }
 
-        if(internalCommand(cmdArray)==0){
+        if(internalCommand(cmd_array)==0){
 
             struct process p = {
-                .argv = cmdArray
+                .argv = cmd_array
             };
-            
+
+            int cmd_output = STDOUT_FILENO;
+            int cmd_input = STDIN_FILENO;
+
+            for(int i=0; cmd_array[i]!=NULL; i++){
+
+                // Redirect output
+                if (strcmp(cmd_array[i], ">")==0){
+                    if (cmd_array[i+1]==0){
+                        printf("Please specify a filename to redirect output, ignoring\n");
+                        cmd_array[i]=0;
+                    }
+                    else {
+                        cmd_output = open(cmd_array[i+1], O_WRONLY | O_CREAT, 0755);
+                        remove_array_elements(cmd_array, i, 2);
+                        i--;
+                    }
+                }
+
+                // Redirect input
+                if (strcmp(cmd_array[i], "<")==0){
+                    if (cmd_array[i+1]==0){
+                        printf("Please specify a filename to redirect input, ignoring\n");
+                        cmd_array[i]=0;
+                    }
+                    else {
+                        cmd_input = open(cmd_array[i+1], O_RDONLY, 0200);
+                        remove_array_elements(cmd_array, i, 2);
+                        i--;
+                    }
+                }
+
+            }
+
             struct job j = {
                 .next = NULL,
-                .command = cmdArray[0],
+                .command = cmd_array[0],
                 .first_process = &p,
                 .pgid = 0,
                 .notified = 'f',
-                .stdin = STDIN_FILENO,
-                .stdout = STDOUT_FILENO,
+                .stdin = cmd_input,
+                .stdout = cmd_output,
                 .stderr = STDERR_FILENO
             };
 
