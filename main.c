@@ -5,27 +5,10 @@
 #include <sys/wait.h>
 
 #include "init_shell.c"
+#include "launch_jobs.c"
 
 #define INPUT_LINE_LENGHT 1024
-
-pid_t spawnChild(const char* program, char** arg_list)
-{
-    pid_t ch_pid = fork();
-
-    if (ch_pid == -1) {
-        perror("fork");
-        exit(EXIT_FAILURE);
-    }
-
-    if (ch_pid == 0) {
-        execvp(program, arg_list);
-        perror(program);
-        exit(EXIT_FAILURE);
-    } else {
-        // printf("spawned child with pid - %d\n", ch_pid);
-        return ch_pid;
-    }
-}
+#define PROMPT_COLOR "[1;32m" // Bold green
 
 /**
 * Get user input safely
@@ -95,14 +78,24 @@ int internalCommand(char** cmdArray){
     }
 }
 
+/**
+* Print prompt text (usually when asking user input)
+*/
+void displayPromptText(){
+
+    char current_working_directory[100];
+    getcwd(current_working_directory, 100);
+
+    printf("\033%s", PROMPT_COLOR); //Set the text to the color green
+    
+    printf("[%s]$ ", current_working_directory);
+
+    printf("\033[0m"); //Resets the text to default color
+}
 
 int main() {
 
-    pid_t child;
-    int wstatus;
-
 	init_shell();
-
 
 	while(1) {
 		
@@ -111,8 +104,8 @@ int main() {
         char** cmdArray;
 
         while(strlen(user_input)==0){
-            
-            printf("$ ");
+
+            displayPromptText();
 
             if(input(user_input, INPUT_LINE_LENGHT)==1){ // EOF was sent
                 printf("exit\n");
@@ -131,9 +124,22 @@ int main() {
 
         if(internalCommand(cmdArray)==0){
 
-            child = spawnChild(cmdArray[0], cmdArray);
+            struct process p = {
+                .argv = cmdArray
+            };
+            
+            struct job j = {
+                .next = NULL,
+                .command = cmdArray[0],
+                .first_process = &p,
+                .pgid = 0,
+                .notified = 'f',
+                .stdin = STDIN_FILENO,
+                .stdout = STDOUT_FILENO,
+                .stderr = STDERR_FILENO
+            };
 
-    	    waitpid(child, &wstatus, WUNTRACED | WCONTINUED);
+            launch_job(&j, 1);
         
         }
 

@@ -1,7 +1,8 @@
 // https://www.gnu.org/software/libc/manual/html_node/Launching-Jobs.html
 
 #include "data_structures.c"
-
+#include "stopped_terminated_jobs.c"
+#include "foreground_and_background.c"
 
 /* Here is the function from the sample shell program 
 that is responsible for launching a program. 
@@ -119,12 +120,13 @@ launch_job (job *j, int foreground)
       infile = mypipe[0];
     }
 
-  format_job_info (j, "launched");
+  // format_job_info (j, "launched");
 
   if (!shell_is_interactive)
     wait_for_job (j);
-  else if (foreground)
-    put_job_in_foreground (j, 0);
+  else if (foreground){
+    // printf("put in foreground!\n");
+    put_job_in_foreground (j, 0);}
   else
     put_job_in_background (j, 0);
 }
