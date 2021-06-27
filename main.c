@@ -19,7 +19,7 @@ pid_t spawnChild(const char* program, char** arg_list)
 
     if (ch_pid == 0) {
         execvp(program, arg_list);
-        perror("execve");
+        perror(program);
         exit(EXIT_FAILURE);
     } else {
         // printf("spawned child with pid - %d\n", ch_pid);
@@ -74,6 +74,28 @@ char** split(const char* string, char* delimiter){
 
 }
 
+/**
+* Execute internal command if available
+* \return 1 if an internal command was found, 0 if no internal command was found
+*/
+int internalCommand(char** cmdArray){
+
+    if(strcmp(cmdArray[0],"cd")==0){
+        if(cmdArray[1]==NULL){
+            printf("Usage: cd DESTINATION\n");
+        }
+        else {
+            chdir(cmdArray[1]);
+        }
+        return 1;
+    }
+
+    else {
+        return 0;
+    }
+}
+
+
 int main() {
 
     pid_t child;
@@ -107,10 +129,13 @@ int main() {
 
         }
 
-        child = spawnChild(cmdArray[0], cmdArray);
+        if(internalCommand(cmdArray)==0){
 
-	    waitpid(child, &wstatus, WUNTRACED | WCONTINUED);
+            child = spawnChild(cmdArray[0], cmdArray);
 
+    	    waitpid(child, &wstatus, WUNTRACED | WCONTINUED);
+        
+        }
 
 	}
 }
