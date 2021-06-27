@@ -1,18 +1,116 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#include <sys/wait.h>
 
 #include "init_shell.c"
 
-int main(int argc, char *argv[]) {
+#define INPUT_LINE_LENGHT 1024
+
+pid_t spawnChild(const char* program, char** arg_list)
+{
+    pid_t ch_pid = fork();
+
+    if (ch_pid == -1) {
+        perror("fork");
+        exit(EXIT_FAILURE);
+    }
+
+    if (ch_pid == 0) {
+        execvp(program, arg_list);
+        perror("execve");
+        exit(EXIT_FAILURE);
+    } else {
+        // printf("spawned child with pid - %d\n", ch_pid);
+        return ch_pid;
+    }
+}
+
+/**
+* Get user input safely
+* \return 0 if everything went well, 1 if EOF was read
+*/
+int input(char *string,int length)
+{
+    if(fgets(string,length,stdin)!=NULL) {
+        strsep(&string, "\n");
+        return 0;
+    }
+    else {
+        return 1;
+    }
+}
+
+/**
+* Split string with delimiter
+* \return string array with each element of the input string splitted by the delimiter
+*/
+char** split(const char* string, char* delimiter){
+
+
+    char** stringArray  = NULL;
+
+    char*  s = strdup(string);
+    char*  element    = strtok (s, delimiter);
+
+    int elementsCount = 0;
+
+    while (element!=NULL) {
+        stringArray = realloc (stringArray, sizeof (char*) * ++elementsCount);
+
+        if (stringArray == NULL)
+        exit (EXIT_FAILURE); // memory allocation failed
+
+        stringArray[elementsCount-1] = element;
+
+        element = strtok (NULL, delimiter);
+    }
+
+    stringArray = realloc (stringArray, sizeof (char*) * (elementsCount+1));
+    stringArray[elementsCount] = 0;
+
+    return stringArray;
+
+}
+
+int main() {
+
+    pid_t child;
+    int wstatus;
 
 	init_shell();
 
-	char user_input[255];
 
-	while(strcmp(user_input,"quit")){
+	while(1) {
 		
-		scanf("%[^\n]%*c", user_input);
-		printf("%s\n", user_input);
+        char *user_input=malloc(INPUT_LINE_LENGHT);
+
+        char** cmdArray;
+
+        while(strlen(user_input)==0){
+            
+            printf("$ ");
+
+            if(input(user_input, INPUT_LINE_LENGHT)==1){ // EOF was sent
+                printf("exit\n");
+                exit(EXIT_SUCCESS);
+            }
+
+            // printf("[%s]\n", user_input);
+
+            cmdArray = split(user_input, " ");
+
+            // for(int i=0; cmdArray[i]!=NULL; i++){
+            //     printf("[%s]\n", cmdArray[i]);
+            // }
+
+        }
+
+        child = spawnChild(cmdArray[0], cmdArray);
+
+	    waitpid(child, &wstatus, WUNTRACED | WCONTINUED);
+
+
 	}
 }
