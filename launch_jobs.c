@@ -4,6 +4,9 @@
 #include "stopped_terminated_jobs.c"
 #include "foreground_and_background.c"
 
+
+
+
 /* Here is the function from the sample shell program 
 that is responsible for launching a program. 
 The function is executed by each child process 
@@ -126,8 +129,10 @@ launch_job (job *j, int foreground)
   if (!shell_is_interactive)
     wait_for_job (j);
   else if (foreground){
-    // printf("put in foreground!\n");
     put_job_in_foreground (j, 0);}
-  else
+  else {
     put_job_in_background (j, 0);
+  }
 }
+
+

@@ -6,7 +6,7 @@ process* create_process(char** args_array){
 
         struct process* p = malloc(sizeof(struct process));
         p->argv = args_array;
-
+        p->next = NULL;
         return p;
     }
 
@@ -18,7 +18,6 @@ process* create_process(char** args_array){
 void add_process(job* j, char** cmd_array){
 
     j->first_process = create_process(split(cmd_array[0], " "));
-    j->first_process->next = NULL;
 
     process* previous_process = j->first_process;
 

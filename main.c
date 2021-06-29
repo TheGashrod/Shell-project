@@ -8,8 +8,8 @@
 #include <fcntl.h>
 
 #include "init_shell.c"
-#include "shell.c"
 #include "launch_jobs.c"
+#include "shell.c"
 #include "create_jobs.c"
 
 #define INPUT_LINE_LENGHT 1024
@@ -17,6 +17,7 @@
 int main() {
 
 	init_shell();
+
 
 	while(1) {
 		
@@ -41,10 +42,19 @@ int main() {
         
         struct job j;
 
+        int is_foreground = 1;
+
+
+        if(*user_input=='&'){
+            is_foreground = 0;
+            user_input = user_input+1;
+        }
+
+
         create_job(&j, user_input);
 
         if(j.first_process!=NULL)
-            launch_job(&j, 1);
+            launch_job(&j, is_foreground);
 
 	}
 }

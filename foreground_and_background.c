@@ -24,7 +24,6 @@ put_job_in_foreground (job *j, int cont)
   /* Wait for it to report.  */
   wait_for_job (j);
 
-  // printf("back to shell\n");
 
   /* Put the shell back in the foreground.  */
   tcsetpgrp (shell_terminal, shell_pgid);
@@ -40,6 +39,9 @@ put_job_in_foreground (job *j, int cont)
 void
 put_job_in_background (job *j, int cont)
 {
+
+  printf("[%i]\n", j->pgid);
+
   /* Send the job a continue signal, if necessary.  */
   if (cont)
     if (kill (-j->pgid, SIGCONT) < 0)
