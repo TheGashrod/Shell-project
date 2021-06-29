@@ -59,6 +59,20 @@ void testREMOVE_ARRAY_ELEMENTS(void)
    CU_ASSERT_STRING_EQUAL(stringArray[3], "function");
 }
 
+/** 
+* test of array_to_string function
+*/
+void testARRAY_TO_STRING(void)
+{
+   char* input = "this is a test of array_to_string function ";
+   char** stringArray  = NULL;
+   stringArray = split(input, " ");
+
+   char* string_from_function = array_to_string(stringArray, " ");
+
+   CU_ASSERT_STRING_EQUAL(string_from_function, input);
+}
+
 
 /* The main() function for setting up and running the tests.
  * Returns a CUE_SUCCESS on successful running, another
@@ -66,26 +80,28 @@ void testREMOVE_ARRAY_ELEMENTS(void)
  */
 int main()
 {
-   CU_pSuite pSuite = NULL;
+   CU_pSuite arrayUtilsSuite = NULL;
 
    /* initialize the CUnit test registry */
    if (CUE_SUCCESS != CU_initialize_registry())
       return CU_get_error();
 
    /* add a suite to the registry */
-   pSuite = CU_add_suite("array_utils_suite", init_suite1, clean_suite1);
-   if (NULL == pSuite) {
+   arrayUtilsSuite = CU_add_suite("array_utils_suite", init_suite1, clean_suite1);
+   if (NULL == arrayUtilsSuite) {
       CU_cleanup_registry();
       return CU_get_error();
    }
 
    /* add the tests to the suite */
-   if ((NULL == CU_add_test(pSuite, "test of split()", testSPLIT))     ||
-       (NULL == CU_add_test(pSuite, "test of remove_array_elements()", testREMOVE_ARRAY_ELEMENTS)))
+   if ((NULL == CU_add_test(arrayUtilsSuite, "test of split()", testSPLIT))                                  ||
+       (NULL == CU_add_test(arrayUtilsSuite, "test of remove_array_elements()", testREMOVE_ARRAY_ELEMENTS))  ||
+       (NULL == CU_add_test(arrayUtilsSuite, "test of array_to_string()", testARRAY_TO_STRING)))
    {
       CU_cleanup_registry();
       return CU_get_error();
    }
+
 
    /* Run all tests using the CUnit Basic interface */
    CU_basic_set_mode(CU_BRM_VERBOSE);
@@ -93,4 +109,3 @@ int main()
    CU_cleanup_registry();
    return CU_get_error();
 }
-
