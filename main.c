@@ -7,6 +7,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#include "cp.c"
 #include "init_shell.c"
 #include "launch_jobs.c"
 #include "shell.c"

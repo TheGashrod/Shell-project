@@ -9,5 +9,5 @@ Simple implementation of a shell
 - [x] Redirect input from a file with `< filename`
 - [x] Redirect both input and output at the same time
 - [x] Pipe commands
-- [ ] Launch jobs in background
-- [ ] Implement `cp`
+- [x] Launch jobs in background
+- [x] Implement `cp` and `mkdir`

@@ -43,6 +43,18 @@ int internalCommand(char** cmd_array){
 
     }
 
+    if(strcmp(cmd_array[0],"cp")==0){
+
+        if(cmd_array[1]==NULL || cmd_array[2]==NULL){
+            printf("Usage: cp SOURCE DESTINATION \n");
+        }
+        else {
+            copyElement(cmd_array[1], cmd_array[2]);
+        }
+        return 1;
+
+    }
+
     else {
         return 0;
     }
