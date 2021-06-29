@@ -63,3 +63,23 @@ void remove_array_elements(char** array, int position, int count){
     array[position]=0;
 
 }
+
+/**
+* Return a string of the array elements separated by delimiter
+*/
+char* array_to_string(char** array, char* delimiter){
+
+    int string_size = 0;
+    char* string = malloc(string_size);
+
+    for (int i = 0; array[i]!=NULL; i++){
+
+        string_size = string_size + sizeof(char*) * strlen(array[i]) + 1;
+        string = realloc(string, string_size );
+
+        strcat(string, array[i]);
+        strcat(string, delimiter);
+    }
+
+    return string;
+}
