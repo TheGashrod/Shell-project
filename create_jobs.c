@@ -1,20 +1,44 @@
 #include "array_utils.c"
 
+process* create_process(char** args_array){
+
+    if(internalCommand(args_array)==0){
+
+        struct process* p = malloc(sizeof(struct process));
+        p->argv = args_array;
+
+        return p;
+    }
+
+    else {
+        return NULL;
+    }
+}
+
 void add_process(job* j, char** cmd_array){
 
-	struct process* p = malloc(sizeof(struct process));
-	j->first_process = p;
+    j->first_process = create_process(split(cmd_array[0], " "));
+    j->first_process->next = NULL;
 
-	
-	p->next = NULL;
-	p->argv = cmd_array;
+    process* previous_process = j->first_process;
+
+    for (int i = 1; cmd_array[i]!=NULL; i++)
+    {
+        previous_process->next = create_process(split(cmd_array[i], " "));
+        previous_process = previous_process->next;
+    }
 
 }
 
-void create_job(job* j, char** cmd_array){
-
+/**
+* Redirect input and output of job if needed
+* \return command string without file redirections symbols
+*/
+char* redirect_input_output(job* j, char* cmd){
     int cmd_output = STDOUT_FILENO;
     int cmd_input = STDIN_FILENO;
+
+    char** cmd_array = split(cmd, " ");
 
     for(int i=0; cmd_array[i]!=NULL; i++){
 
@@ -46,14 +70,23 @@ void create_job(job* j, char** cmd_array){
 
     }
 
-    j->next = NULL;
-    j->command = cmd_array[0];
-    j->pgid = 0;
-    j->notified = 'f';
     j->stdin = cmd_input;
     j->stdout = cmd_output;
     j->stderr = STDERR_FILENO;
 
+    return array_to_string(cmd_array, " ");
+}
+
+void create_job(job* j, char* user_input){
+
+    j->next = NULL;
+    j->pgid = 0;
+    j->notified = 'f';
+    
+    char* cmd = redirect_input_output(j, user_input);
+
+    char** cmd_array = split(cmd, "|");
     add_process(j, cmd_array);
+
 }
 
