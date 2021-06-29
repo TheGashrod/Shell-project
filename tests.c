@@ -26,10 +26,15 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <CUnit/CUnit.h>
 #include <CUnit/Basic.h>
+#include "array_utils.c"
 // #include <CUnit/TestRun.h>
+
+
+
 
 
 /* Pointer to the file used by the tests. */
@@ -63,6 +68,36 @@ int clean_suite1(void)
       return 0;
    }
 }
+
+
+// test array_utils :
+
+
+//   split function :
+void testSPLIT(void)
+{
+   char* input = "this is a test of split function";
+   char** stringArray  = NULL;
+   stringArray = split(input, " ");
+   CU_ASSERT_STRING_EQUAL(stringArray[0], "this");
+   CU_ASSERT_STRING_EQUAL(stringArray[1], "is");
+   CU_ASSERT_STRING_EQUAL(stringArray[2], "a");
+}
+
+//   remove_array_elements function :
+void testREMOVE_ARRAY_ELEMENTS(void)
+{
+   char* input = "this is a test of split function";
+   char** stringArray  = NULL;
+   stringArray = split(input, " ");
+   remove_array_elements(stringArray,1,3);
+
+   CU_ASSERT_STRING_EQUAL(stringArray[0], "this");
+   CU_ASSERT_STRING_EQUAL(stringArray[1], "of");
+   CU_ASSERT_STRING_EQUAL(stringArray[2], "split");
+}
+
+
 
 /* Simple test of fprintf().
  * Writes test data to the temporary file and checks
@@ -117,7 +152,9 @@ int main()
    /* add the tests to the suite */
    /* NOTE - ORDER IS IMPORTANT - MUST TEST fread() AFTER fprintf() */
    if ((NULL == CU_add_test(pSuite, "test of fprintf()", testFPRINTF)) ||
-       (NULL == CU_add_test(pSuite, "test of fread()", testFREAD)))
+       (NULL == CU_add_test(pSuite, "test of fread()", testFREAD))     ||
+       (NULL == CU_add_test(pSuite, "test of split()", testSPLIT))     ||
+       (NULL == CU_add_test(pSuite, "test of remove_array_elements()", testREMOVE_ARRAY_ELEMENTS)))
    {
       CU_cleanup_registry();
       return CU_get_error();
