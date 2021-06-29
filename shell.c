@@ -31,6 +31,18 @@ int internalCommand(char** cmd_array){
         return 1;
     }
 
+    if(strcmp(cmd_array[0],"mkdir")==0){
+
+        if(cmd_array[1]==NULL){
+            printf("Usage: mkdir PATH\n");
+        }
+        else {
+            mkdir(cmd_array[1], 755);
+        }
+        return 1;
+
+    }
+
     else {
         return 0;
     }
